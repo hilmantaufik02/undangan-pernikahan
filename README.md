@@ -60,3 +60,11 @@ Nama, tanggal/waktu, alamat, Instagram, orang tua, serta rekening berada pada ob
 ## Upload ke GitHub/Vercel
 
 Upload `index.html`, folder `assets`, folder `musik` (beserta file MP3 jika digunakan), dan file SQL/README. Hosting statis tidak otomatis menyediakan database; Supabase adalah layanan terpisah untuk menyimpan komentar bersama.
+
+
+## Struktur file
+- `index.html`: struktur halaman dan pemanggilan library eksternal.
+- `style.css`: seluruh gaya tampilan.
+- `script.js`: logika undangan, navigasi karakter, galeri, dan photobox.
+
+Buka melalui server lokal atau hosting HTTPS agar izin kamera dapat digunakan. Photobox mengikuti rasio video kamera yang dilaporkan browser; hasil akhir tetap berupa PNG.
