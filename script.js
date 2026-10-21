@@ -465,7 +465,8 @@
 
       v.save();
       v.translate(x, y);
-      v.scale(.76, .76);
+      const heroScale = window.matchMedia('(max-width: 640px)').matches ? .49 : .67;
+      v.scale(heroScale, heroScale);
       // Ground shadow breathes subtly while the character walks.
       v.fillStyle = 'rgba(48,62,45,.23)';
       v.beginPath();
@@ -757,7 +758,7 @@
   <div id="stks" class="flex gap-1 mb-2 flex-wrap">${['💖', '💍', '🥂', '🎂', '🌹', '🙏', '🎉', '😍'].map(s => `<button class="card !p-1 text-xl" onclick="stk='${s}';sk()">${s}</button>`).join('')}</div>
   <button class="btn w-full" onclick="send()">Kirim ucapan &amp; RSVP</button><p id="guestbookHint" class="text-[10px] mt-2 opacity-70">Ucapan tersimpan di browser ini sampai database online dihubungkan.</p><div id="list" class="mt-3"></div>`),
       hadiah: () => box('Kotak hadiah', '🎁', C.bank.map(([b, n, a]) => `<div class="card mb-2"><b>${b}</b> · ${a}<div class="text-xl my-1">${n}</div><button class="btn !py-1 text-sm" onclick="copyBank('${n}',this)">Salin nomor</button></div>`).join('')),
-      photobox: () => box('Virtual photobox', '📷', `<video id="cam" playsinline muted class="w-full rounded bg-black" style="transform:scaleX(-1);max-height:42vh;object-fit:contain"></video><label class="block text-sm mt-3 mb-1" for="frameColor">Warna bingkai / grid</label><div class="flex items-center gap-2"><input id="frameColor" type="color" value="#fbf0d3" aria-label="Pilih warna bingkai" style="width:54px;height:38px;padding:2px;border:1px solid var(--brown);border-radius:8px"><span class="text-xs opacity-75">Warna ini diterapkan ke latar photostrip.</span></div><button class="btn w-full mt-2" id="snap">Ambil 3 foto</button><p id="pm" class="text-xs mt-2" role="status"></p><canvas id="strip" class="hidden w-full max-w-xs mx-auto mt-3 rounded-lg" style="height:auto"></canvas><a id="dl" class="btn hidden block text-center mt-2" download="photostrip.png">Simpan photostrip</a>`),
+      photobox: () => box('Virtual photobox', '📷', `<video id="cam" playsinline muted class="w-full rounded bg-black" style="transform:scaleX(-1);max-height:42vh;object-fit:contain"></video><label class="block text-sm mt-3 mb-1" for="frameMotif">Motif bingkai foto</label><select id="frameMotif" class="in"><option value="floral">🌸 Floral klasik</option><option value="botanical">🌿 Botanical</option><option value="hearts">💕 Romantic hearts</option><option value="classic">✦ Classic gold</option></select><p class="text-xs opacity-75 mt-1">Pilih motif dekorasi pada bingkai photostrip.</p><button class="btn w-full mt-2" id="snap">Ambil 3 foto</button><p id="pm" class="text-xs mt-2" role="status"></p><canvas id="strip" class="hidden w-full max-w-xs mx-auto mt-3 rounded-lg" style="height:auto"></canvas><a id="dl" class="btn hidden block text-center mt-2" download="photostrip.png">Simpan photostrip</a>`),
       chat: () => box('Sapa tamu', '💬', '<p class="text-sm">Selamat datang! Dekati penanda di peta untuk membuka detail setiap bagian. 🌸</p>')
     };
     function open(k) {
@@ -888,8 +889,8 @@
         }
         snapButton.disabled = true;
         const canvas = $('#strip'), ctx = canvas.getContext('2d');
-        const frameInput = $('#frameColor');
-        const frameColor = frameInput ? frameInput.value : '#fbf0d3';
+        const motifInput = $('#frameMotif');
+        const frameMotif = motifInput ? motifInput.value : 'floral';
         // Keep the camera's native aspect ratio; only scale it to a practical output width.
         const sourceW = c.videoWidth, sourceH = c.videoHeight;
         const photoW = Math.min(480, Math.max(240, sourceW));
@@ -901,8 +902,25 @@
         canvas.height = pad * 2 + photoH * 3 + gap * 2 + footerH;
         canvas.classList.remove('hidden');
         $('#dl').classList.add('hidden');
-        ctx.fillStyle = frameColor;
+        const palettes = { floral: ['#fff5e9', '#b76e79', '#e6b8bd'], botanical: ['#f2f4e8', '#4f7558', '#a8b99a'], hearts: ['#fff0f3', '#b84d68', '#e7a0b1'], classic: ['#fbf0d3', '#9b773e', '#d8bd7b'] };
+        const palette = palettes[frameMotif] || palettes.floral;
+        ctx.fillStyle = palette[0];
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Draw a motif-specific decorative frame around the strip and each photo.
+        const drawMotif = (x, y, w, h, step) => {
+          ctx.save(); ctx.fillStyle = palette[1]; ctx.strokeStyle = palette[1];
+          ctx.lineWidth = Math.max(1.5, photoW / 180);
+          ctx.strokeRect(x + 2, y + 2, w - 4, h - 4);
+          const symbols = { floral: '✿', botanical: '❧', hearts: '♥', classic: '✦' };
+          ctx.font = `${Math.max(10, Math.round(photoW * .045))}px serif`;
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          for (let px = x + step / 2; px < x + w; px += step) {
+            ctx.fillText(symbols[frameMotif] || '✿', px, y + step * .35);
+            ctx.fillText(symbols[frameMotif] || '✿', px, y + h - step * .35);
+          }
+          ctx.restore();
+        };
+        drawMotif(0, 0, canvas.width, canvas.height, Math.max(20, Math.round(photoW * .12)));
 
         try {
           for (let i = 0; i < 3; i++) {
@@ -919,6 +937,7 @@
             ctx.strokeStyle = 'rgba(85,55,43,.22)';
             ctx.lineWidth = Math.max(1, photoW / 300);
             ctx.strokeRect(pad + .5, y + .5, photoW - 1, photoH - 1);
+            drawMotif(pad - 3, y - 3, photoW + 6, photoH + 6, Math.max(22, Math.round(photoW * .14)));
           }
           ctx.fillStyle = '#7a2335';
           ctx.textAlign = 'center';
@@ -927,7 +946,7 @@
           ctx.fillText('Hilman & Resti · 08.11.2026', canvas.width / 2, canvas.height - footerH / 2, canvas.width - pad * 2);
           $('#dl').href = canvas.toDataURL('image/png');
           $('#dl').classList.remove('hidden');
-          status.textContent = 'Selesai! Pilihan warna dan rasio kamera sudah diterapkan.';
+          status.textContent = 'Selesai! Motif bingkai dan rasio kamera sudah diterapkan.';
         } catch (error) {
           console.error('Gagal membuat photostrip:', error);
           status.textContent = 'Photostrip gagal dibuat. Coba ambil foto kembali.';
