@@ -1,0 +1,1 @@
+Untuk musik MP3 lokal, letakkan file audio yang kamu miliki/berizin dengan nama persis: lagu-cinta.mp3 di folder ini. Jangan mengubah URL YouTube menjadi file audio; browser tidak dapat memakai tautan YouTube sebagai sumber <audio>. Jika file tidak tersedia, aplikasi menampilkan pemutar YouTube sebagai fallback.
