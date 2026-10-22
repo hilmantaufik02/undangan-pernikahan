@@ -1,4 +1,4 @@
-# Undangan Digital Hilman & Resti — Cozy 2.5D
+# Undangan Digital Hilman & Intania — Cozy 2.5D
 
 Undangan interaktif berbasis HTML, CSS, dan JavaScript dengan ilustrasi taman pastel yang diperbarui, enam lokasi interaktif, karakter chibi, kamera mengikuti pemain, joystick/keyboard, musik, galeri placeholder, RSVP/ucapan, hadiah, dan photobox.
 
