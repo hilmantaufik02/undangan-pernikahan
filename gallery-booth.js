@@ -13,13 +13,17 @@
      (9×16 = vertikal HP, 16×9 = horizontal).
    --------------------------------------------------------------------- */
 const GALLERY = [
-  { type: 'video', src: 'assets/video/video-1.mp4', poster: 'assets/video/video-1.jpg', w: 9, h: 16,
-    title: 'Cerita Kami', caption: 'Sepenggal perjalanan Hilman & Resti' },
+  {
+    type: 'video', src: 'assets/video/video-1.mp4', poster: 'assets/video/video-1.jpg', w: 9, h: 16,
+    title: 'Cerita Kami', caption: 'Sepenggal perjalanan Hilman T & Resti Intania'
+  },
   { type: 'photo', src: 'assets/gallery/frame-1.jpeg', thumb: 'assets/gallery/webp/frame-1-t.webp', w: 1280, h: 1280 },
   { type: 'photo', src: 'assets/gallery/frame-2.jpeg', thumb: 'assets/gallery/webp/frame-2-t.webp', w: 960, h: 1280 },
   { type: 'photo', src: 'assets/gallery/frame-3.jpeg', thumb: 'assets/gallery/webp/frame-3-t.webp', w: 828, h: 1472 },
-  { type: 'video', src: 'assets/video/video-2.mp4', poster: 'assets/video/video-2.jpg', w: 9, h: 16,
-    title: 'Menuju Hari Bahagia', caption: 'Momen kecil yang berarti besar' },
+  {
+    type: 'video', src: 'assets/video/video-2.mp4', poster: 'assets/video/video-2.jpg', w: 9, h: 16,
+    title: 'Menuju Hari Bahagia', caption: 'Momen kecil yang berarti besar'
+  },
   { type: 'photo', src: 'assets/gallery/frame-6.jpeg', thumb: 'assets/gallery/webp/frame-6-t.webp', w: 353, h: 627 },
   { type: 'photo', src: 'assets/gallery/frame-4.jpeg', thumb: 'assets/gallery/webp/frame-4-t.webp', w: 864, h: 1536 },
   { type: 'photo', src: 'assets/gallery/frame-5.jpeg', thumb: 'assets/gallery/webp/frame-5-t.webp', w: 864, h: 1536 }
@@ -434,7 +438,7 @@ async function boothInit() {
   $('#snap').onclick = runBooth;
   $('#btRetry').onclick = () => { $('#btResult').hidden = true; btNote(''); $('#btView').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); };
   $('#btShare').onclick = async () => {
-    try { await navigator.share({ files: [new File([booth.blob], 'photostrip-hilman-resti.png', { type: 'image/png' })], title: 'Photostrip Hilman & Resti' }); } catch (_) { }
+    try { await navigator.share({ files: [new File([booth.blob], 'photostrip-hilman-resti.png', { type: 'image/png' })], title: 'Photostrip Hilman T & R. Intania' }); } catch (_) { }
   };
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     btNote('Fitur kamera membutuhkan HTTPS atau localhost dan browser yang mendukung.'); $('#snap').disabled = true; return;
