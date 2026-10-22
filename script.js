@@ -27,12 +27,12 @@ mapArt.src = 'assets/garden-map.webp';
 const POIS = [
   // Coordinates are mapped to the new 900 × 594 garden illustration.
   // x/y = safe standing points on stone paths; lx/ly = floating nameplate positions.
-  { k: 'pasangan', n: 'Pasangan House', short: 'Pasangan', e: '💍', t: 'Temui pengantin di rumah pasangan', x: 162, y: 224, lx: 161, ly: 112 },
-  { k: 'acara', n: 'Acara Gazebo', short: 'Acara', e: '💐', t: 'Lihat detail akad di gazebo', x: 448, y: 132, lx: 449, ly: 43 },
-  { k: 'galeri', n: 'Galeri Gallery', short: 'Galeri', e: '🖼️', t: 'Jelajahi galeri foto', x: 710, y: 219, lx: 712, ly: 105 },
-  { k: 'ucapan', n: 'Ucapan Mailbox', short: 'Ucapan', e: '💌', t: 'Tinggalkan ucapan untuk pengantin', x: 790, y: 326, lx: 790, ly: 244 },
-  { k: 'hadiah', n: 'Hadiah Gift Shop', short: 'Hadiah', e: '🎁', t: 'Buka kotak hadiah', x: 744, y: 502, lx: 746, ly: 391 },
-  { k: 'photobox', n: 'Photobox Photo Booth', short: 'Photobox', e: '📷', t: 'Ambil foto kenangan', x: 176, y: 487, lx: 174, ly: 389 }
+  { k: 'pasangan', n: 'Rumah Pasangan', short: 'Pasangan', e: '💍', t: 'Temui pengantin di rumah pasangan', x: 162, y: 224, lx: 161, ly: 112 },
+  { k: 'acara', n: 'Gazebo Acara', short: 'Acara', e: '💐', t: 'Lihat detail akad di gazebo', x: 448, y: 132, lx: 449, ly: 43 },
+  { k: 'galeri', n: 'Galeri', short: 'Galeri', e: '🖼️', t: 'Jelajahi galeri foto', x: 710, y: 219, lx: 712, ly: 105 },
+  { k: 'ucapan', n: 'Kotak Ucapan', short: 'Ucapan', e: '💌', t: 'Tinggalkan ucapan untuk pengantin', x: 790, y: 326, lx: 790, ly: 244 },
+  { k: 'hadiah', n: 'Toko Hadiah', short: 'Hadiah', e: '🎁', t: 'Buka kotak hadiah', x: 744, y: 502, lx: 746, ly: 391 },
+  { k: 'photobox', n: 'Photo Booth', short: 'Photobox', e: '📷', t: 'Ambil foto kenangan', x: 176, y: 487, lx: 174, ly: 389 }
 ];
 
 /* ===== MAP-ALIGNED WALKABLE PATH MASK + ROUTING =====
@@ -529,13 +529,15 @@ function draw(t) {
   drawHero(P.x - cx, P.y - cy, t);
   if (near) { const x = near.x - cx, y = near.y - cy - 48; v.strokeStyle = 'rgba(255,240,190,.85)'; v.lineWidth = 1.5; v.beginPath(); v.ellipse(x, y, 25 + Math.sin(t * 3) * 2, 10 + Math.sin(t * 3) * 1.2, 0, 0, Math.PI * 2); v.stroke() }
 }
-let last = 0, raf = 0; function loop(ts) { if (document.hidden) { raf = 0; return } const raw = ts - last, dt = Math.min(.05, raw / 1000 || 0); last = ts;
+let last = 0, raf = 0; function loop(ts) {
+  if (document.hidden) { raf = 0; return } const raw = ts - last, dt = Math.min(.05, raw / 1000 || 0); last = ts;
   // Saat jendela info terbuka kanvas hanya perlu ~30fps (hemat baterai).
   if (modalOn && (loop.skip = !loop.skip)) { raf = requestAnimationFrame(loop); return }
   step(dt); draw(ts / 1000);
   // Pantau kelancaran: jika rata-rata frame lambat, turunkan resolusi render bertahap.
   if (raw > 0 && raw < 250 && !modalOn) { perfAcc += raw; if (++perfN >= 90) { if (perfAcc / perfN > 26 && DPR_CAP > 1.25) { DPR_CAP = Math.max(1.25, DPR_CAP - .5); fit(); } perfAcc = perfN = 0; } }
-  raf = requestAnimationFrame(loop) }
+  raf = requestAnimationFrame(loop)
+}
 function resumeLoop() { if (!document.hidden && !raf) { last = 0; raf = requestAnimationFrame(loop) } }
 document.addEventListener('visibilitychange', () => { if (document.hidden) { if (raf) cancelAnimationFrame(raf); raf = 0 } else resumeLoop() }); resumeLoop();
 
