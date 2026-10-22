@@ -68,3 +68,25 @@ Upload `index.html`, folder `assets`, folder `musik` (beserta file MP3 jika digu
 - `script.js`: logika undangan, navigasi karakter, galeri, dan photobox.
 
 Buka melalui server lokal atau hosting HTTPS agar izin kamera dapat digunakan. Photobox mengikuti rasio video kamera yang dilaporkan browser; hasil akhir tetap berupa PNG.
+
+
+## Galeri & video (gallery-booth.js)
+- Array `GALLERY` mengatur urutan tampil. Foto disusun masonry sesuai rasio aslinya (isi `w` dan `h` piksel foto), video tampil selebar kartu.
+- Video: taruh `video-1.mp4` / `video-2.mp4` di `assets/video/` (panduan kompres ada di `assets/video/README.txt`). Musik latar otomatis berhenti saat video diputar dan lanjut saat dijeda/ditutup.
+- Lightbox foto: tombol panah, geser (swipe), keyboard, tutup dengan Esc.
+
+## Photobooth
+- 5 frame di `assets/frame/overlay/*.webp` (lubang foto sudah transparan). Posisi slot ada di `BOOTH_FRAMES`.
+- Pratinjau kamera memakai rasio slot frame yang dipilih, jadi hasil sama dengan yang terlihat.
+- Efek per frame (otomatis, bisa diganti): Breaking News=B&W Koran, Harvest=Pastel, Airmail=Vintage, Raw Memories=Film, Stardew=Pixel.
+- Kamera depan/belakang; lensa 0.5x muncul bila perangkat membukanya (iPhone: lensa "Ultra Wide"; Android Chrome: zoom minimum <= 0.5).
+- Teks pada frame (tanggal, nama) sudah menyatu dengan gambar frame, jadi diubah lewat editor gambar.
+
+
+## Performa & grafis (update)
+- Tailwind CDN diganti `tailwind.css` statis (8 KB, sebelumnya script ~300 KB yang dijalankan tiap buka). Jika menambah class Tailwind baru, bangun ulang: `npx tailwindcss@3.4.17 -c tailwind.config.js -i src/tailwind-input.css -o tailwind.css --minify`.
+- FontAwesome (CSS + font) diganti 4 ikon SVG inline.
+- Peta taman dirender di resolusi asli 1230x812 (sebelumnya diperkecil ke 900x594), resolusi kanvas mengikuti layar sampai 2,5x dan turun otomatis bila perangkat lambat. Label bangunan di-cache; kanvas 30 fps saat jendela info terbuka.
+- Galeri memakai thumbnail WebP (`assets/gallery/webp/`), foto asli (JPEG) hanya dimuat saat diperbesar. Video lazy (poster dulu, video diunduh saat ditekan play).
+- Foto mempelai & QRIS jadi WebP. File PNG/JPEG lama masih ada sebagai sumber, tidak dimuat oleh halaman.
+- Overlay frame photobooth dibuat 2x dan dipertajam; kamera meminta hingga 2560x1440.
