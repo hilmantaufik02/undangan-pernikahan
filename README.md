@@ -97,3 +97,7 @@ Buka melalui server lokal atau hosting HTTPS agar izin kamera dapat digunakan. P
 - Titik tujuan Hadiah dan Photobox digeser ke ujung jalan batu terdekat; semua 6 tujuan sudah dites bisa dicapai dari titik awal.
 - Gerak dengan joystick/WASD kini meluncur mengikuti tepi jalan yang melengkung atau diagonal (steering assist), jadi tidak mudah berhenti.
 - Jika gambar peta diganti, mask harus dibuat ulang dari gambar baru.
+
+## Update v5
+- Rute otomatis (mis. Acara ke Galeri) kini menjaga jarak aman dari tepi jalan (peta jarak di `script.js`), sehingga tidak ada jeda saat menghitung ulang rute. Semua 36 kombinasi rute antar lokasi dites tanpa keluar jalur.
+- Galeri memakai mosaik tanpa celah: tiap kelompok 3 foto = 2 foto bertumpuk di kiri + 1 foto tinggi di kanan, tinggi kolom selalu sama dan rasio foto tetap asli. Urutan foto bisa diubah di array `GALLERY`.

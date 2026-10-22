@@ -65,13 +65,34 @@ if (DEBUG_WALK) {
 }
 
 const walkPixels = wm.getImageData(0, 0, WW, WH).data;
+// Jarak tiap piksel jalan ke tepi jalan terdekat (chamfer 3-4). Dipakai agar rute otomatis
+// selalu menjaga jarak aman dari tepi dan tidak "menggesek" piksel bergerigi di pinggir mask.
+const walkClear = new Uint8Array(WW * WH);
+(function buildClearance() {
+  const INF = 255, d = walkClear;
+  for (let i = 0; i < WW * WH; i++) d[i] = walkPixels[i * 4] > 127 ? INF : 0;
+  for (let y = 0; y < WH; y++) for (let x = 0; x < WW; x++) {
+    const i = y * WW + x; if (!d[i]) continue;
+    let m = d[i];
+    if (x === 0 || y === 0) m = 1; else m = Math.min(m, d[i - 1] + 3, d[i - WW] + 3, d[i - WW - 1] + 4, x < WW - 1 ? d[i - WW + 1] + 4 : 4);
+    d[i] = Math.min(m, 255);
+  }
+  for (let y = WH - 1; y >= 0; y--) for (let x = WW - 1; x >= 0; x--) {
+    const i = y * WW + x; if (!d[i]) continue;
+    let m = d[i];
+    if (x === WW - 1 || y === WH - 1) m = Math.min(m, 3); else m = Math.min(m, d[i + 1] + 3, d[i + WW] + 3, d[i + WW + 1] + 4, x > 0 ? d[i + WW - 1] + 4 : 4);
+    d[i] = Math.min(m, 255);
+  }
+})();
+const clearAt = (x, y) => (x < 0 || y < 0 || x >= WW || y >= WH) ? 0 : walkClear[Math.round(y) * WW + Math.round(x)] / 3;
+const CELL_CLEAR = 3;
 const walkGrid = new Uint8Array(WALK_COLS * WALK_ROWS);
 for (let gy = 0; gy < WALK_ROWS; gy++) {
   for (let gx = 0; gx < WALK_COLS; gx++) {
     const px = gx * WALK_CELL + Math.floor(WALK_CELL / 2);
     const py = gy * WALK_CELL + Math.floor(WALK_CELL / 2);
     const inside = px > 0 && py > 0 && px < WW - 1 && py < WH - 1;
-    walkGrid[gy * WALK_COLS + gx] = inside && walkPixels[(py * WW + px) * 4] > 127 ? 1 : 0;
+    walkGrid[gy * WALK_COLS + gx] = inside && walkPixels[(py * WW + px) * 4] > 127 && clearAt(px, py) >= CELL_CLEAR ? 1 : 0;
   }
 }
 function isWalkable(x, y) {
@@ -84,6 +105,14 @@ function segmentWalkable(x1, y1, x2, y2) {
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
     if (!isWalkable(x1 + (x2 - x1) * t, y1 + (y2 - y1) * t)) return false;
+  }
+  return true;
+}
+function segmentClear(x1, y1, x2, y2, min = CELL_CLEAR) {
+  const steps = Math.max(1, Math.ceil(Math.hypot(x2 - x1, y2 - y1) / 1.25));
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    if (clearAt(x1 + (x2 - x1) * t, y1 + (y2 - y1) * t) < min) return false;
   }
   return true;
 }
@@ -201,7 +230,7 @@ function findWalkPath(start, goal) {
   while (anchor < points.length - 1) {
     let next = anchor + 1;
     for (let candidate = points.length - 1; candidate > anchor + 1; candidate--) {
-      if (segmentWalkable(points[anchor].x, points[anchor].y, points[candidate].x, points[candidate].y)) {
+      if (segmentClear(points[anchor].x, points[anchor].y, points[candidate].x, points[candidate].y, CELL_CLEAR)) {
         next = candidate; break;
       }
     }
@@ -372,6 +401,15 @@ function step(dt) {
       if (Math.abs(dirX) > .08) face = dirX < 0 ? -1 : 1;
       if (segmentWalkable(P.x, P.y, nx, ny)) {
         P.x = nx; P.y = ny;
+        velocity.x = dirX * 108; velocity.y = dirY * 108;
+        autoBlockedTime = 0;
+        // Tiba di belokan: langsung lanjut ke titik berikutnya (tanpa jeda 1 frame).
+        if (Math.hypot(tgt.x - P.x, tgt.y - P.y) <= 1.25 && isWalkable(tgt.x, tgt.y)) {
+          P.x = tgt.x; P.y = tgt.y;
+          const lastDir = [dirX, dirY]; finishAutoWaypoint();
+          if (tgt) { velocity.x = lastDir[0] * 108; velocity.y = lastDir[1] * 108; }
+        }
+      } else if (moveAlongRoad(dirX * travel, dirY * travel)) {
         velocity.x = dirX * 108; velocity.y = dirY * 108;
         autoBlockedTime = 0;
       } else {

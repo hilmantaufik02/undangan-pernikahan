@@ -20,9 +20,9 @@ const GALLERY = [
   { type: 'photo', src: 'assets/gallery/frame-3.jpeg', thumb: 'assets/gallery/webp/frame-3-t.webp', w: 828, h: 1472 },
   { type: 'video', src: 'assets/video/video-2.mp4', poster: 'assets/video/video-2.jpg', w: 9, h: 16,
     title: 'Menuju Hari Bahagia', caption: 'Momen kecil yang berarti besar' },
+  { type: 'photo', src: 'assets/gallery/frame-6.jpeg', thumb: 'assets/gallery/webp/frame-6-t.webp', w: 353, h: 627 },
   { type: 'photo', src: 'assets/gallery/frame-4.jpeg', thumb: 'assets/gallery/webp/frame-4-t.webp', w: 864, h: 1536 },
-  { type: 'photo', src: 'assets/gallery/frame-5.jpeg', thumb: 'assets/gallery/webp/frame-5-t.webp', w: 864, h: 1536 },
-  { type: 'photo', src: 'assets/gallery/frame-6.jpeg', thumb: 'assets/gallery/webp/frame-6-t.webp', w: 353, h: 627 }
+  { type: 'photo', src: 'assets/gallery/frame-5.jpeg', thumb: 'assets/gallery/webp/frame-5-t.webp', w: 864, h: 1536 }
 ];
 const GALLERY_PHOTOS = GALLERY.filter(g => g.type === 'photo');
 const GALLERY_VIDEOS = GALLERY.filter(g => g.type === 'video');
@@ -40,14 +40,36 @@ function videoCardHTML(v, vi) {
   </figure>`;
 }
 
+/* Susunan mosaik tanpa celah: tiap kelompok foto disusun sehingga kedua kolom SELALU sama tinggi
+   dan rasio asli foto tetap terjaga. 3 foto = dua foto bertumpuk di kiri + satu foto tinggi di
+   kanan (susunan yang sama untuk semua kelompok). 2 foto = berdampingan dengan tinggi sama. */
+function tileHTML(item, fill) {
+  const pi = GALLERY_PHOTOS.indexOf(item), ar = fill ? '' : `aspect-ratio:${item.w}/${item.h}`;
+  return `<button type="button" class="g-tile" style="${ar}" onclick="lb(${pi})" aria-label="Buka foto ${pi + 1}"><img src="${item.thumb || item.src}" alt="${escapeHTML(item.alt || 'Foto ' + (pi + 1))}" width="${item.w}" height="${item.h}" loading="lazy" decoding="async"></button>`;
+}
+const ratioOf = it => it.w / it.h;
+function trioHTML(a, b, c) {
+  const fr = (ratioOf(c) * (1 / ratioOf(a) + 1 / ratioOf(b))).toFixed(4);
+  return `<div class="g-trio" style="grid-template-columns:1fr ${fr}fr"><div class="g-stack">${tileHTML(a)}${tileHTML(b)}</div>${tileHTML(c, true)}</div>`;
+}
+function pairHTML(a, b) {
+  return `<div class="g-pair" style="grid-template-columns:${ratioOf(a).toFixed(4)}fr ${ratioOf(b).toFixed(4)}fr">${tileHTML(a)}${tileHTML(b)}</div>`;
+}
+function photoGroupHTML(items) {
+  const out = []; let i = 0, n = items.length;
+  while (n - i >= 3 && !((n - i) === 4)) { out.push(trioHTML(items[i], items[i + 1], items[i + 2])); i += 3; }
+  if (n - i === 4) { out.push(pairHTML(items[i], items[i + 1]), pairHTML(items[i + 2], items[i + 3])); i += 4; }
+  if (n - i === 2) { out.push(pairHTML(items[i], items[i + 1])); i += 2; }
+  if (n - i === 1) out.push(`<div class="g-single">${tileHTML(items[i])}</div>`);
+  return out.join('');
+}
+
 function galleryHTML() {
   const out = []; let run = [];
-  const flush = () => { if (run.length) { out.push(`<div class="g-masonry">${run.join('')}</div>`); run = []; } };
+  const flush = () => { if (run.length) { out.push(`<div class="g-mosaic">${photoGroupHTML(run)}</div>`); run = []; } };
   GALLERY.forEach(item => {
-    if (item.type === 'photo') {
-      const pi = GALLERY_PHOTOS.indexOf(item);
-      run.push(`<button type="button" class="g-tile" style="aspect-ratio:${item.w}/${item.h}" onclick="lb(${pi})" aria-label="Buka foto ${pi + 1}"><img src="${item.thumb || item.src}" alt="${escapeHTML(item.alt || 'Foto ' + (pi + 1))}" width="${item.w}" height="${item.h}" loading="lazy" decoding="async"></button>`);
-    } else { flush(); out.push(videoCardHTML(item, GALLERY_VIDEOS.indexOf(item))); }
+    if (item.type === 'photo') run.push(item);
+    else { flush(); out.push(videoCardHTML(item, GALLERY_VIDEOS.indexOf(item))); }
   });
   flush();
   return box('Album foto & video', '🖼️', `<div class="g-wrap">${out.join('')}</div><p class="g-hint">Ketuk foto untuk memperbesar · geser untuk foto berikutnya</p>`);

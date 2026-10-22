@@ -1574,3 +1574,13 @@
   #lightbox .lb-prev{left:calc(50% - 340px)}#lightbox .lb-next{right:calc(50% - 340px)}
   .g-tile{border-radius:14px}
 }
+
+/* Mosaik galeri tanpa celah */
+.g-mosaic{display:flex;flex-direction:column;gap:8px}
+.g-trio,.g-pair{display:grid;gap:8px;align-items:stretch}
+.g-trio>*,.g-pair>*{min-width:0}
+.g-stack{display:flex;flex-direction:column;gap:8px}
+.g-mosaic .g-tile{margin:0;break-inside:auto}
+.g-trio>.g-tile,.g-pair>.g-tile{height:100%}
+.g-mosaic .g-tile img{width:100%;height:100%;object-fit:cover}
+.g-single{width:62%;margin:0 auto}
