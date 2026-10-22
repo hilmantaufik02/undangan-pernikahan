@@ -15,7 +15,7 @@
 const GALLERY = [
   {
     type: 'video', src: 'assets/video/video-1.mp4', poster: 'assets/video/video-1.jpg', w: 9, h: 16,
-    title: 'Cerita Kami', caption: 'Sepenggal perjalanan Hilman T & Intania Denas'
+    title: 'Cerita Kami', caption: 'Sepenggal perjalanan Hilman Taufik & Resti Intania Denas'
   },
   { type: 'photo', src: 'assets/gallery/frame-1.jpeg', thumb: 'assets/gallery/webp/frame-1-t.webp', w: 1280, h: 1280 },
   { type: 'photo', src: 'assets/gallery/frame-2.jpeg', thumb: 'assets/gallery/webp/frame-2-t.webp', w: 960, h: 1280 },
@@ -236,7 +236,7 @@ function boothHTML() {
     <div id="btResult" class="bt-result" hidden>
       <canvas id="strip"></canvas>
       <div class="bt-actions">
-        <a id="dl" class="btn text-center" download="photostrip-hilman-intania.png" href="#">⬇ Simpan</a>
+        <a id="dl" class="btn text-center" download="photostrip-hilman-resti-intania.png" href="#">⬇ Simpan</a>
         <button id="btShare" class="btn" type="button" hidden>↗ Bagikan</button>
         <button id="btRetry" class="btn" type="button">↺ Ulangi</button>
       </div>
@@ -438,7 +438,7 @@ async function boothInit() {
   $('#snap').onclick = runBooth;
   $('#btRetry').onclick = () => { $('#btResult').hidden = true; btNote(''); $('#btView').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); };
   $('#btShare').onclick = async () => {
-    try { await navigator.share({ files: [new File([booth.blob], 'photostrip-hilman-intania.png', { type: 'image/png' })], title: 'Photostrip Hilman T & Intania D' }); } catch (_) { }
+    try { await navigator.share({ files: [new File([booth.blob], 'photostrip-hilman-resti-intania.png', { type: 'image/png' })], title: 'Photostrip Hilman Taufik & Resti Intania Denas' }); } catch (_) { }
   };
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     btNote('Fitur kamera membutuhkan HTTPS atau localhost dan browser yang mendukung.'); $('#snap').disabled = true; return;
