@@ -1,10 +1,10 @@
 
 /* ===== DATA: ganti sesuai kebutuhan ===== */
 const C = {
-  a: 'Hilman T', b: 'Resti Intania', date: new Date('2026-11-08T09:00:00+07:00'),
+  a: 'Hilman T', b: 'Intania Denas', date: new Date('2026-11-08T09:00:00+07:00'),
   venue: '', addr: 'Jl. Saluyu A XV No.4, Cipamokolan, Kec. Rancasari, Kota Bandung, Jawa Barat 40292',
   ig: ['@iammann._', '@_tatanduttt'], ortu: [['Bpk. Nana Suryana', 'Ibu. Sri Maolina'], ['Bpk. Nasrul Aswadi (Alm)', 'Ibu. Nenden Wake Rohmaet']],
-  bank: [['BCA', '1393 122 700', 'Hilman Taufik'], ['DANA', '0815-7305-8734', 'Resti Intania Denas']]
+  bank: [['BCA', '1393 122 700', 'Hilman Taufik'], ['DANA', '0815-7305-8734', 'Intania Denas']]
 };
 const $ = s => document.querySelector(s);
 $('#to').textContent = new URLSearchParams(location.search).get('to') || 'Tamu Undangan';
