@@ -90,3 +90,10 @@ Buka melalui server lokal atau hosting HTTPS agar izin kamera dapat digunakan. P
 - Galeri memakai thumbnail WebP (`assets/gallery/webp/`), foto asli (JPEG) hanya dimuat saat diperbesar. Video lazy (poster dulu, video diunduh saat ditekan play).
 - Foto mempelai & QRIS jadi WebP. File PNG/JPEG lama masih ada sebagai sumber, tidak dimuat oleh halaman.
 - Overlay frame photobooth dibuat 2x dan dipertajam; kamera meminta hingga 2560x1440.
+
+## Jalur jalan karakter (update)
+- Mask jalan sekarang dibuat otomatis dari warna jalan batu pada `assets/garden-map.webp` (file `walkmask.js`), bukan kurva manual. Jadi jalan yang terlihat = jalan yang bisa diinjak, dengan margin kecil di tepi agar kaki karakter tidak menyentuh rumput.
+- Buka `index.html?debug=1` untuk melihat area jalan (merah) di atas peta.
+- Titik tujuan Hadiah dan Photobox digeser ke ujung jalan batu terdekat; semua 6 tujuan sudah dites bisa dicapai dari titik awal.
+- Gerak dengan joystick/WASD kini meluncur mengikuti tepi jalan yang melengkung atau diagonal (steering assist), jadi tidak mudah berhenti.
+- Jika gambar peta diganti, mask harus dibuat ulang dari gambar baru.

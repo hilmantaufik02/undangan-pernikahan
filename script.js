@@ -29,99 +29,40 @@ const POIS = [
   // x/y = safe standing points on stone paths; lx/ly = floating nameplate positions.
   { k: 'pasangan', n: 'Pasangan House', short: 'Pasangan', e: '💍', t: 'Temui pengantin di rumah pasangan', x: 162, y: 224, lx: 161, ly: 112 },
   { k: 'acara', n: 'Acara Gazebo', short: 'Acara', e: '💐', t: 'Lihat detail akad di gazebo', x: 448, y: 132, lx: 449, ly: 43 },
-  { k: 'galeri', n: 'Galeri', short: 'Galeri', e: '🖼️', t: 'Jelajahi galeri foto', x: 710, y: 219, lx: 712, ly: 105 },
+  { k: 'galeri', n: 'Galeri Gallery', short: 'Galeri', e: '🖼️', t: 'Jelajahi galeri foto', x: 710, y: 219, lx: 712, ly: 105 },
   { k: 'ucapan', n: 'Ucapan Mailbox', short: 'Ucapan', e: '💌', t: 'Tinggalkan ucapan untuk pengantin', x: 790, y: 326, lx: 790, ly: 244 },
-  { k: 'hadiah', n: 'Hadiah Gift Shop', short: 'Hadiah', e: '🎁', t: 'Buka kotak hadiah', x: 744, y: 477, lx: 746, ly: 391 },
-  { k: 'photobox', n: 'Photobox Photo Booth', short: 'Photobox', e: '📷', t: 'Ambil foto kenangan', x: 178, y: 482, lx: 174, ly: 389 }
+  { k: 'hadiah', n: 'Hadiah Gift Shop', short: 'Hadiah', e: '🎁', t: 'Buka kotak hadiah', x: 744, y: 502, lx: 746, ly: 391 },
+  { k: 'photobox', n: 'Photobox Photo Booth', short: 'Photobox', e: '📷', t: 'Ambil foto kenangan', x: 176, y: 487, lx: 174, ly: 389 }
 ];
 
 /* ===== MAP-ALIGNED WALKABLE PATH MASK + ROUTING =====
-   The road mask follows the stone walkways of the supplied 1230 × 812 illustration.
-   Player's feet position may only enter the white path area, never the grass/garden beds.
+   Mask jalan dibuat dari warna jalan batu pada gambar peta (lihat walkmask.js), jadi yang terlihat
+   sebagai jalan = yang bisa diinjak. Tambahkan ?debug=1 pada URL untuk melihat mask berwarna merah.
 */
 const WALK_CELL = 4;
 const WALK_COLS = Math.ceil(WW / WALK_CELL), WALK_ROWS = Math.ceil(WH / WALK_CELL);
 const walkMask = document.createElement('canvas');
 walkMask.width = WW; walkMask.height = WH;
 const wm = walkMask.getContext('2d', { willReadFrequently: true });
-wm.fillStyle = '#000'; wm.fillRect(0, 0, WW, WH);
-wm.lineCap = 'round'; wm.lineJoin = 'round'; wm.strokeStyle = '#fff';
-function roadShape(width, drawPath) {
-  wm.beginPath(); drawPath(wm); wm.lineWidth = width; wm.stroke();
+(function decodeWalkMask() {
+  const img = wm.createImageData(WW, WH), d = img.data;
+  let pos = 0, val = 0;
+  for (const tok of WALK_MASK.rle.split(',')) {
+    const run = parseInt(tok, 36);
+    if (val) for (let i = pos; i < pos + run; i++) { const o = i * 4; d[o] = d[o + 1] = d[o + 2] = 255; }
+    pos += run; val ^= 1;
+  }
+  for (let i = 0; i < WW * WH; i++) d[i * 4 + 3] = 255;
+  wm.putImageData(img, 0, 0);
+})();
+const DEBUG_WALK = new URLSearchParams(location.search).has('debug');
+let walkDebugCv = null;
+if (DEBUG_WALK) {
+  walkDebugCv = document.createElement('canvas'); walkDebugCv.width = WW; walkDebugCv.height = WH;
+  const dc = walkDebugCv.getContext('2d'), di = dc.createImageData(WW, WH), src = wm.getImageData(0, 0, WW, WH).data;
+  for (let i = 0; i < WW * WH; i++) if (src[i * 4] > 127) { di.data[i * 4] = 255; di.data[i * 4 + 1] = 40; di.data[i * 4 + 2] = 40; di.data[i * 4 + 3] = 255; }
+  dc.putImageData(di, 0, 0);
 }
-
-// Main loop follows the stone lane OUTSIDE the planted beds around the fountain.
-// These coordinates are in the same 900 x 594 coordinate space as the rendered map.
-roadShape(30, p => {
-  p.moveTo(450, 198);
-  p.bezierCurveTo(417, 201, 389, 217, 356, 239);
-  p.bezierCurveTo(337, 263, 315, 296, 300, 326);
-  p.bezierCurveTo(298, 353, 323, 389, 347, 417);
-  p.bezierCurveTo(380, 438, 418, 444, 450, 443);
-  p.bezierCurveTo(482, 444, 520, 437, 556, 417);
-  p.bezierCurveTo(582, 389, 600, 355, 606, 326);
-  p.bezierCurveTo(610, 300, 588, 261, 570, 239);
-  p.bezierCurveTo(536, 216, 496, 201, 450, 198);
-});
-
-// Acara Gazebo: central stairway joins the main loop.
-roadShape(32, p => {
-  p.moveTo(450, 94);
-  p.bezierCurveTo(450, 125, 450, 171, 450, 198);
-});
-
-// Pasangan House: descend the front steps, curve to the right, then join the upper-left loop.
-roadShape(32, p => {
-  p.moveTo(160, 190);
-  p.bezierCurveTo(161, 220, 160, 251, 163, 270);
-  p.bezierCurveTo(168, 291, 185, 302, 207, 306);
-  p.bezierCurveTo(234, 308, 255, 297, 281, 280);
-  p.bezierCurveTo(305, 260, 326, 253, 340, 263);
-});
-
-// Galeri Gallery: stairs bend westwards and join the upper-right loop.
-roadShape(32, p => {
-  p.moveTo(710, 177);
-  p.bezierCurveTo(713, 207, 711, 226, 700, 242);
-  p.bezierCurveTo(682, 254, 656, 258, 634, 256);
-  p.bezierCurveTo(604, 255, 582, 245, 570, 239);
-});
-
-// Ucapan Mailbox: horizontal path from the right side of the loop, with a short access spur.
-roadShape(32, p => {
-  p.moveTo(606, 326);
-  p.bezierCurveTo(632, 326, 666, 326, 708, 326);
-  p.bezierCurveTo(741, 326, 770, 326, 796, 326);
-});
-roadShape(29, p => {
-  p.moveTo(790, 326);
-  p.bezierCurveTo(790, 315, 790, 303, 790, 292);
-});
-
-// Main southern exit and lower fork.
-roadShape(34, p => {
-  p.moveTo(450, 443);
-  p.bezierCurveTo(450, 474, 450, 526, 450, 594);
-});
-
-// Photobox: follow the lower-left cobblestone bend and terminate outside the booth entrance.
-roadShape(32, p => {
-  p.moveTo(386, 431);
-  p.bezierCurveTo(377, 442, 359, 458, 337, 476);
-  p.bezierCurveTo(321, 490, 304, 500, 281, 508);
-  p.bezierCurveTo(254, 515, 225, 511, 201, 503);
-  p.bezierCurveTo(188, 495, 179, 484, 176, 470);
-  p.bezierCurveTo(170, 460, 170, 452, 170, 446);
-});
-
-// Hadiah Gift Shop: lower-right cobblestone bend ends by the front steps.
-roadShape(32, p => {
-  p.moveTo(514, 431);
-  p.bezierCurveTo(524, 440, 544, 457, 565, 475);
-  p.bezierCurveTo(583, 488, 604, 499, 625, 506);
-  p.bezierCurveTo(649, 513, 674, 513, 696, 508);
-  p.bezierCurveTo(719, 501, 735, 490, 744, 477);
-});
 
 const walkPixels = wm.getImageData(0, 0, WW, WH).data;
 const walkGrid = new Uint8Array(WALK_COLS * WALK_ROWS);
@@ -365,7 +306,18 @@ function finishAutoWaypoint() {
 function moveAlongRoad(dx, dy) {
   const nx = cl(P.x + dx, 4, WW - 5), ny = cl(P.y + dy, 4, WH - 5);
   if (segmentWalkable(P.x, P.y, nx, ny)) { P.x = nx; P.y = ny; return true; }
-  // Axis sliding makes the avatar follow a bend without allowing a step through grass.
+  // Steering assist: jika lurus terhalang tepi jalan, coba belok bertahap (±20°…±90°) dan ambil
+  // yang paling dekat dengan arah yang diinginkan, sehingga karakter meluncur mengikuti tikungan
+  // alih-alih berhenti saat tepi jalan diagonal/melengkung.
+  const len = Math.hypot(dx, dy);
+  if (len > 1e-4) {
+    const base = Math.atan2(dy, dx);
+    for (const deg of [20, -20, 40, -40, 60, -60, 80, -80]) {
+      const a = base + deg * Math.PI / 180, k = Math.cos(deg * Math.PI / 180) * .9 + .1;
+      const sx = cl(P.x + Math.cos(a) * len * k, 4, WW - 5), sy = cl(P.y + Math.sin(a) * len * k, 4, WH - 5);
+      if (segmentWalkable(P.x, P.y, sx, sy)) { P.x = sx; P.y = sy; return true; }
+    }
+  }
   let moved = false;
   if (segmentWalkable(P.x, P.y, nx, P.y)) { P.x = nx; moved = true; }
   else if (Math.abs(dx) > .01) velocity.x = 0;
@@ -531,6 +483,7 @@ function draw(t) {
   const tx = cl(P.x - cw / 2, 0, Math.max(0, WW - cw)), ty = cl(P.y - ch * .56, 0, Math.max(0, WH - ch));
   if (!camReady) { CAM.x = tx; CAM.y = ty; camReady = true } else { CAM.x += (tx - CAM.x) * .14; CAM.y += (ty - CAM.y) * .14 }
   const cx = CAM.x, cy = CAM.y; v.drawImage(world, -cx, -cy, WW, WH);
+  if (DEBUG_WALK) { v.globalAlpha = .45; v.drawImage(walkDebugCv, -cx, -cy, WW, WH); v.globalAlpha = 1; }
   // Fixed labels above each destination, with a warm-paper sign treatment.
   POIS.forEach(o => drawNameplate(o, cx, cy, o === near));
   // Slow, subtle pollen motes preserve the dreamy garden atmosphere.
@@ -538,15 +491,13 @@ function draw(t) {
   drawHero(P.x - cx, P.y - cy, t);
   if (near) { const x = near.x - cx, y = near.y - cy - 48; v.strokeStyle = 'rgba(255,240,190,.85)'; v.lineWidth = 1.5; v.beginPath(); v.ellipse(x, y, 25 + Math.sin(t * 3) * 2, 10 + Math.sin(t * 3) * 1.2, 0, 0, Math.PI * 2); v.stroke() }
 }
-let last = 0, raf = 0; function loop(ts) {
-  if (document.hidden) { raf = 0; return } const raw = ts - last, dt = Math.min(.05, raw / 1000 || 0); last = ts;
+let last = 0, raf = 0; function loop(ts) { if (document.hidden) { raf = 0; return } const raw = ts - last, dt = Math.min(.05, raw / 1000 || 0); last = ts;
   // Saat jendela info terbuka kanvas hanya perlu ~30fps (hemat baterai).
   if (modalOn && (loop.skip = !loop.skip)) { raf = requestAnimationFrame(loop); return }
   step(dt); draw(ts / 1000);
   // Pantau kelancaran: jika rata-rata frame lambat, turunkan resolusi render bertahap.
   if (raw > 0 && raw < 250 && !modalOn) { perfAcc += raw; if (++perfN >= 90) { if (perfAcc / perfN > 26 && DPR_CAP > 1.25) { DPR_CAP = Math.max(1.25, DPR_CAP - .5); fit(); } perfAcc = perfN = 0; } }
-  raf = requestAnimationFrame(loop)
-}
+  raf = requestAnimationFrame(loop) }
 function resumeLoop() { if (!document.hidden && !raf) { last = 0; raf = requestAnimationFrame(loop) } }
 document.addEventListener('visibilitychange', () => { if (document.hidden) { if (raf) cancelAnimationFrame(raf); raf = 0 } else resumeLoop() }); resumeLoop();
 
